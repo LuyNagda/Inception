@@ -1,0 +1,28 @@
+services:
+  nginx:
+    build:
+      context: srcs/requirements/nginx/
+    container_name: nginx
+    ports:
+      - 4431:443
+    restart: always
+    #networks:
+    #  - elastic
+    #volumes:
+    #  - ./logstash/pipeline/logstash-nginx.config:/usr/share/logstash/pipeline/logstash-nginx.config
+    #  - ./logstash/nginx.log:/home/nginx.log
+  #kibana:
+  #  image: kibana:7.8.0
+  #  container_name: kib
+  #  ports:
+  #    - "5601:5601"
+  #  depends_on:
+  #    - elasticsearch
+  #  networks:
+  #    - elastic
+#networks:
+#  elastic:
+#    driver: bridge
+#    # default MTU size in docker-compose is 1500
+#    driver_opts:
+#      com.docker.network.driver.mtu: 1440
