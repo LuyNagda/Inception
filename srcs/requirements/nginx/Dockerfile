@@ -2,12 +2,18 @@ FROM debian:oldstable
 
 EXPOSE 443
 
-COPY ./nginx.conf /etc/nginx/nginx.conf
-
-RUN apt update && apt upgrade -y && apt install -y nginx
+RUN apt-get update && apt-get install -y \
+	nginx \
+	openssl
 
 COPY ./tools/lunagda.42.fr.crt /etc/nginx/lunagda.42.fr.crt
 
 COPY ./tools/lunagda.42.fr.key /etc/nginx/lunagda.42.fr.key
 
-CMD nginx -g 'daemon off;'
+COPY ./conf/nginx.conf /etc/nginx/sites-available/default
+
+RUN openssl req -x509 -days 365 -nodes -newkey rsa:4096 \
+	-keyout /etc/nginx/lunagda.42.fr.key \
+	-out /etc/nginx/lunagda.42.fr.crt -sha256 -subj "/CN=prossi.42.fr"
+
+CMD ["nginx", "-g", "daemon off;"]
