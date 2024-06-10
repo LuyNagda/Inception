@@ -1,91 +1,22 @@
-#services:
-#  mariadb:
-#    container_name: mariadb
-#    image: mariadb
-#    networks:
-#      - project
-#    build:
-#      context: ./requirements/mariadb
-#      dockerfile: Dockerfile
-#      args:
-#        DB_NAME: $DB_NAME
-#        DB_USER: $DB_USER
-#        DB_PASSWORD: $DB_PASSWORD
-#        DB_ROOT_PASSWORD: $DB_ROOT_PASSWORD
-#    env_file: .env
-#    volumes:
-#      - mariadb:/var/lib/mysql
-#    restart: unless-stopped
-#    expose:
-#      - "3306"
-#  nginx:
-#    container_name: nginx
-#    image: nginx
-#    networks:
-#      - project
-#    build:
-#      context: ./requirements/nginx/
-#      dockerfile: Dockerfile
-#    env_file: .env
-#    volumes:
-#      - wordpress:/var/www/wordpress
-#    depends_on:
-#      - wordpress
-#    restart: on-failure
-#    ports:
-#      - "443:443"
-#  wordpress:
-#    container_name: wordpress
-#    image: wordpress
-#    networks:
-#      - project
-#    build: 
-#      context: ./requirements/wordpress
-#    env_file: .env
-#    volumes:
-#      - wordpress:/var/www/wordpress
-#    depends_on:
-#      - mariadb
-#    restart: on-failure
-
-#networks:
-#  project:
-#    driver: bridge
-
-#volumes:
-#  wordpress:
-#    driver: local
-#    driver_opts:
-#      type: 'none'
-#      o: 'bind'
-#      device: /home/${USER}/data/wordpress
-#  mariadb:
-#    driver: local
-#    driver_opts:
-#      type: 'none'
-#      o: 'bind'
-#      device: /home/${USER}/data/mariadb
-
-version: '3'
 services:
   mariadb:
-    container_name: mariadb # Le nom du container, oui vraiment.
+    container_name: mariadb
     image: mariadb
     networks:
-      - inception # à quel network il appartient
+      - inception
     build:
-      context: requirements/mariadb # ou se trouve son Dockerfile
-      dockerfile: Dockerfile # le nom du Dockerfile ?!
+      context: requirements/mariadb
+      dockerfile: Dockerfile
       args:
         DB_NAME: $DB_NAME
         DB_USER: $DB_USER
         DB_PASSWORD: $DB_PASSWORD
         DB_ROOT_PASSWORD: $DB_ROOT_PASSWORD
-    env_file: .env # le fichier d'environnement pour transmettre les variables
+    env_file: .env
     volumes:
       - mariadb:/var/lib/mysql
-    restart: unless-stopped # redémarre tant qu'il n'est pas stoppé 
-    expose:   # le port à exposer
+    restart: unless-stopped
+    expose:
       - "3306"
   nginx:
     container_name: nginx
@@ -94,7 +25,7 @@ services:
       - wordpress:$WP_PATH
     networks:
       - inception
-    depends_on: # Nouvelle ligne, indiquant de ne pas démarrer NGINX tant que WordPress n'a pas démarré.
+    depends_on:
       - wordpress
     build:
       context: requirements/nginx
@@ -104,8 +35,8 @@ services:
         WP_URL: $WP_URL
     env_file: .env
     ports:
-      - "443:443" # on indique le port qui sera exposé a la machine locale
-    restart: on-failure # Ici nous changeons, le container redémarrera uniquement en cas de crash.
+      - "443:443"
+    restart: on-failure
 
   wordpress:
     container_name: wordpress
@@ -119,7 +50,7 @@ services:
       context: requirements/wordpress
       dockerfile: Dockerfile
     depends_on:
-      - mariadb # WordPress démarrera uniquement après MariaDB (sinon il ne pourra pas configurer la base de données...)
+      - mariadb
     restart: on-failure
     expose:
       - "9000"
@@ -132,12 +63,12 @@ volumes:
   wordpress:
     driver: local
     driver_opts:
-      type: 'none' # aucun type spécifique
-      o: 'bind'
-      device: '/home/lunagda/data/wordpress' #Ou stocker le dossier sur votre ordinateur en local
+      type: none
+      o: bind
+      device: $WORDPRESS_VOLUME_PATH
   mariadb:
     driver: local
     driver_opts:
-      type: 'none'
-      o: 'bind'  # Les Bind Mounts sont des volumes qui se montent sur un chemin d'accès à l'hôte, et ils peuvent être modifiés par d'autres processus en dehors de docker.
-      device: '/home/lunagda/data/mariadb' #Ou stocker le dossier sur votre ordinateur en local
+      type: none
+      device: $MARIADB_VOLUME_PATH
+      o: bind

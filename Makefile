@@ -1,24 +1,42 @@
-all : up
+DOCKER_COMPOSE_PATH	= srcs/docker-compose.yaml
+DOCKER_COMPOSE		= docker compose -f $(DOCKER_COMPOSE_PATH)
 
-up : 
-	@mkdir -p ~/data/wordpress
-	@mkdir -p ~/data/mariadb
-	@docker compose -f ./srcs/docker-compose.yaml up -d
+include srcs/.env
 
-down : 
-	@docker compose -f ./srcs/docker-compose.yaml down
-	sudo rm -rf ~/data
+.PHONY: all
+all: $(WORDPRESS_VOLUME_PATH) $(MARIADB_VOLUME_PATH)
+	$(MAKE) up
 
-stop : 
-	@docker compose -f ./srcs/docker-compose.yaml stop
+.PHONY: up
+up: $(WORDPRESS_VOLUME_PATH) $(MARIADB_VOLUME_PATH)
+	$(DOCKER_COMPOSE) up --build
 
-start : 
-	@docker compose -f ./srcs/docker-compose.yaml start
+.PHONY: down
+down:
+	$(DOCKER_COMPOSE) down
 
-status : 
-	@docker ps
+.PHONY: stop
+stop:
+	$(DOCKER_COMPOSE) stop
 
-re: down up
+.PHONY: restart
+restart:
+	$(DOCKER_COMPOSE) restart
 
-build:
-	@docker compose -f ./srcs/docker-compose.yaml up --build -d
+.PHONY: clean
+clean:
+	$(DOCKER_COMPOSE) down --volumes --rmi all
+
+.PHONY: fclean
+fclean: clean
+	rm -rf $(WORDPRESS_VOLUME_PATH) $(MARIADB_VOLUME_PATH)
+
+.PHONY: re
+re: fclean
+	$(MAKE) all
+
+$(WORDPRESS_VOLUME_PATH):
+	mkdir -p $(WORDPRESS_VOLUME_PATH)
+
+$(MARIADB_VOLUME_PATH):
+	mkdir -p $(MARIADB_VOLUME_PATH)
