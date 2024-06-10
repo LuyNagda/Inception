@@ -4,16 +4,13 @@ EXPOSE 443
 
 RUN apt-get update && apt-get install -y \
 	nginx \
-	openssl
+	openssl && \
+	rm -rf /var/lib/apt/lists/*
 
-COPY ./tools/lunagda.42.fr.crt /etc/nginx/lunagda.42.fr.crt
+COPY ./conf/nginx.conf /etc/nginx/nginx.conf
 
-COPY ./tools/lunagda.42.fr.key /etc/nginx/lunagda.42.fr.key
+RUN mkdir -p /etc/nginx/ssl
 
-COPY ./conf/nginx.conf /etc/nginx/sites-available/default
+RUN openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=lunagda.42.fr/UID=lunagda"
 
-RUN openssl req -x509 -days 365 -nodes -newkey rsa:4096 \
-	-keyout /etc/nginx/lunagda.42.fr.key \
-	-out /etc/nginx/lunagda.42.fr.crt -sha256 -subj "/CN=prossi.42.fr"
-
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx"]

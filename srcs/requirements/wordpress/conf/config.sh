@@ -1,18 +1,29 @@
-cd /var/www/wordpress
-wp core config	--dbhost=$DB_HOST \
-				--dbname=$DB_NAME \
+
+if [ ! -f "/var/www/wordpress/wp-config.php" ]; then
+
+	wp core download --path=$WP_PATH --allow-root
+
+	wp config create --dbname=$DB_NAME \
 				--dbuser=$DB_USER \
 				--dbpass=$DB_PASSWORD \
-				--allow-root
+				--dbhost=mariadb:3306 \
+				--allow-root \
+				--path=$WP_PATH
 
-wp core install --title=$WP_TITLE \
-				--admin_user=$WP_ADMIN_USR \
-				--admin_password=$WP_ADMIN_PWD \
-				--admin_email=$WP_ADMIN_EMAIL \
-				--url=$WP_URL \
-				--allow-root
+	# Config wordpress core
+	wp core install --url="${WP_URL}" \
+				--title="${WP_TITLE}" \
+				--admin_user="${WP_ADMIN_USR}" \
+				--admin_password="${WP_ADMIN_PWD}" \
+				--admin_email="${WP_ADMIN_EMAIL}" \
+				--allow-root \
+				--path=$WP_PATH
 
-wp user create $WP_USER $WP_MAIL --role=author --user_pass=$WP_PWD --allow-root
-cd -
+	wp user create $WP_USR $WP_EMAIL \
+				--user-pass=$WP_PWD \
+				--allow-root \
+				--path=$WP_PATH
+fi
 
-php-fpm7.3 -F
+mkdir -p /run/php
+php-fpm8.3 -F
